@@ -4,10 +4,8 @@ import os
 import socket
 from datetime import datetime
 
-from typing import Dict, List
-from uuid import UUID
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi import Query, Path
 from typing import Optional
 
@@ -49,6 +47,27 @@ def get_health_with_path(
     return make_health(echo=echo, path_echo=path_echo)
 
 
+@app.post("/review/{spotId}/user/{userId}")
+def addReview(spotId: int, userId: int):
+    # Register a new review for a study spot.
+    return {'message': 'stub for addReview'}
+
+@app.post("/rating/{spotId}")
+def addRating(spotId: int):
+    # Register a new rating for a study spot.
+    return {'message': 'stub for addRating'}
+
+@app.get("/ratings/{spotId}")
+def getRatings(spotId: int):
+    # Get all ratings for a study spot.
+    return {'message': 'stub for getRatings'}
+
+@app.get("/reviews/{spotId}")
+def getReviews(spotId: int):
+    # Get all reviews for a study spot.
+    return {'message': 'stub for getReviews'}
+
+
 
 
 # -----------------------------------------------------------------------------
@@ -56,7 +75,7 @@ def get_health_with_path(
 # -----------------------------------------------------------------------------
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Person/Address/Pet/Petshop API. See /docs for OpenAPI UI."}
+    return {"message": "Welcome to the Reviews and Ratings API. See /docs for OpenAPI UI."}
 
 # -----------------------------------------------------------------------------
 # Entrypoint for `python main.py`
