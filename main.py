@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import socket
 from datetime import datetime
+from uuid import UUID
 
 
 from fastapi import FastAPI, HTTPException
@@ -11,8 +12,11 @@ from typing import Optional
 
 from models.health import Health
 
-from models.rating import RatingCreate
-from models.review import ReviewCreate
+from models.rating import RatingCreate, RatingRead, RatingUpdate
+from models.review import ReviewCreate, ReviewRead, ReviewUpdate
+
+from starlette.responses import JSONResponse
+from starlette.requests import Request
 import mysql.connector
 
 def get_connection():
@@ -45,6 +49,20 @@ app = FastAPI(
     version="0.1.0",
 )
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"errorMessage": exc.detail}
+    )
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"errorMessage": "Unknown error has occurred: " + str(exc)}
+    )
+
 # -----------------------------------------------------------------------------
 # Address endpoints
 # -----------------------------------------------------------------------------
@@ -61,7 +79,6 @@ def make_health(echo: Optional[str], path_echo: Optional[str]=None) -> Health:
 
 @app.get("/health", response_model=Health)
 def get_health_no_path(echo: str | None = Query(None, description="Optional echo string")):
-    # Works because path_echo is optional in the model
     return make_health(echo=echo, path_echo=None)
 
 @app.get("/health/{path_echo}", response_model=Health)
@@ -72,73 +89,178 @@ def get_health_with_path(
     return make_health(echo=echo, path_echo=path_echo)
 
 
-@app.post("/review/{spotId}/user/{userId}")
+def execute_query(queries: list, only_one=False):
+    conn, cursor = None, None
+    result = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        for i, (query, params) in enumerate(queries):
+            cursor.execute(query, params)
+            if i == len(queries) - 1:
+                if query.strip().upper().startswith("SELECT"):
+                    if only_one:
+                        result = cursor.fetchone()
+                    else:
+                        result = cursor.fetchall()
+                else:
+                    result = cursor.rowcount
+
+        conn.commit()
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        raise Exception(f"DB Error: {err}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            
+    return result
+
+@app.post("/review/{spotId}/user/{userId}", status_code=201, response_model=ReviewRead)
 def add_review(spotId: int, userId: int, body: ReviewCreate):
-    conn = None 
-    cursor = None
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO reviews (spot_id, user_id, review_text, created_at) VALUES (%s, %s, %s, %s);",
-            (spotId, userId, body.review, body.postDate)
-        )
-        conn.commit()
-        return {"status": "SUCCESS", "spotId": spotId, "userId": userId, "review": body.review}
+        queries = [
+            (
+                "INSERT INTO reviews (id, spot_id, user_id, review, created_at) VALUES (%s, %s, %s, %s, %s);",
+                (str(body.id), spotId, userId, body.review, body.postDate)
+            ),
+            (
+                "SELECT * FROM reviews WHERE id = %s;",
+                (str(body.id),)
+            )
+        ]
+        new_review = execute_query(queries, only_one=True)
+        if not new_review:
+            raise HTTPException(status_code=500, detail="Failed to create and retrieve the new review.")
+        return new_review
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
+@app.patch("/review/{reviewId}", response_model=ReviewRead)
+def update_review(reviewId: UUID, body: ReviewUpdate):
+    if body.review is None:
+        raise HTTPException(status_code=400, detail="Can't update review without review field")
+    try:
+        queries = [
+            (
+                "UPDATE reviews SET review = %s, updated_at = UTC_TIMESTAMP() WHERE id = %s",
+                (body.review, str(reviewId))
+            ),
+            (
+                "SELECT * FROM reviews WHERE id = %s;",
+                (str(reviewId),)
+            )
+        ]
+        updated_review = execute_query(queries, only_one=True)
+        if not updated_review:
+            raise HTTPException(status_code=404, detail=f"Review ID {reviewId} not found.")
+        return updated_review
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/rating/{spotId}/user/{userId}")
+@app.post("/rating/{spotId}/user/{userId}", status_code=201, response_model=RatingRead)
 def add_rating(spotId: int, userId: int, body: RatingCreate):
-    conn = None 
-    cursor = None
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO ratings (spot_id, user_id, rating, created_at) VALUES (%s, %s, %s, %s);",
-            (spotId, userId, body.rating, body.postDate)
-        )
-        conn.commit()
-        return {"status": "SUCCESS", "spotId": spotId, "userId": userId, "rating": body.rating}
+        queries = [
+            (
+                "INSERT INTO ratings (id, spot_id, user_id, rating, created_at) VALUES (%s, %s, %s, %s, %s);",
+                (str(body.id), spotId, userId, body.rating, body.postDate)
+            ),
+            (
+                "SELECT * FROM ratings WHERE id = %s;",
+                (str(body.id),)
+            )
+        ]
+        new_rating = execute_query(queries, only_one=True)
+        if not new_rating:
+            raise HTTPException(status_code=500, detail="Failed to create and retrieve the new rating.")
+        return new_rating
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
+@app.patch("/rating/{ratingId}", response_model=RatingRead)
+def update_rating(ratingId: UUID, body: RatingUpdate):
+    if body.rating is None:
+        raise HTTPException(status_code=400, detail="Can't update rating without rating field")
+    try:
+        queries = [
+            (
+                "UPDATE ratings SET rating = %s, updated_at = UTC_TIMESTAMP() WHERE id = %s",
+                (body.rating, str(ratingId))
+            ),
+            (
+                "SELECT * FROM ratings WHERE id = %s;",
+                (str(ratingId),)
+            )
+        ]
+        updated_rating = execute_query(queries, only_one=True)
+        if not updated_rating:
+            raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
+        return updated_rating
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/review/{reviewId}", status_code=204)
+def delete_review(reviewId: UUID):
+    try:
+        queries = [(
+            "DELETE FROM reviews WHERE id = %s",
+            (str(reviewId),)
+        )]
+        rows_deleted = execute_query(queries)
+        if rows_deleted == 0:
+            raise HTTPException(status_code=404, detail=f"Review ID {reviewId} not found.")
+        return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/rating/{ratingId}", status_code=204)
+def delete_rating(ratingId: UUID):
+    try:
+        queries = [(
+            "DELETE FROM ratings WHERE id = %s",
+            (str(ratingId),)
+        )]
+        rows_deleted = execute_query(queries)
+        if rows_deleted == 0:
+            raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
+        return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/ratings/{spotId}")
 def get_ratings(spotId: int):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT rating FROM ratings WHERE spot_id = %s;", (spotId,))
-    results = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    queries = [("SELECT * FROM ratings WHERE spot_id = %s;", (spotId,))]
+    results = execute_query(queries)
     if not results:
-        raise HTTPException(status_code=404, detail="No ratings found for this spot")
-    return {"ratings": [r["rating"] for r in results]}
+        return {"ratings": []}
+    return {"ratings": results}
 
 @app.get("/reviews/{spotId}")
 def get_reviews(spotId: int):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT review_text FROM reviews WHERE spot_id = %s;", (spotId,))
-    results = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    queries = [("SELECT * FROM reviews WHERE spot_id = %s;", (spotId,))]
+    results = execute_query(queries)
     if not results:
-        raise HTTPException(status_code=404, detail="No reviews found for this spot")
-    return {"reviews": [r["review_text"] for r in results]}
+        return {"reviews": []}
+    return {"reviews": results}
+
+@app.get("/ratings/{spotId}/average")
+def get_average_rating(spotId: int):
+    queries = [(
+        "SELECT AVG(rating) AS average_rating, COUNT(rating) as rating_count FROM ratings WHERE spot_id = %s;", 
+        (spotId,)
+    )]
+    result = execute_query(queries, only_one=True)
+    
+    if not result or result["average_rating"] is None:
+        return {"spotId": spotId, "average_rating": 0.0, "rating_count": 0}
+    
+    avg_rating = round(float(result["average_rating"]), 1)
+    return {"spotId": spotId, "average_rating": avg_rating, "rating_count": result["rating_count"]}
 
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 
@@ -18,7 +18,7 @@ class ReviewBase(BaseModel):
         json_schema_extra={"example": "Extremely loud and hard to focus.",},
     )
     postDate: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Date/time the review was posted.",
         json_schema_extra={"example": "2025-01-15T10:20:30Z"},
     )
@@ -71,12 +71,12 @@ class ReviewUpdate(BaseModel):
 
 class ReviewRead(ReviewBase):
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        ...,
         description="Creation timestamp (UTC).",
         json_schema_extra={"example": "2025-01-15T10:20:30Z"},
     )
-    updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
+    updated_at: Optional[datetime] = Field(
+        default=None,
         description="Last update timestamp (UTC).",
         json_schema_extra={"example": "2025-01-16T12:00:00Z"},
     )

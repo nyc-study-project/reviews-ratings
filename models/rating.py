@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 
@@ -16,9 +16,11 @@ class RatingBase(BaseModel):
         ...,
         description="The rating",
         json_schema_extra={"example": 2,},
+        ge=1,
+        le=5
     )
     postDate: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Date/time the rating was posted.",
         json_schema_extra={"example": "2025-01-15T10:20:30Z"},
     )
@@ -56,7 +58,8 @@ class RatingUpdate(BaseModel):
     """Partial update; rating ID is taken from the path, not the body."""
 
     rating: Optional[int] = Field(
-        None, description="Rating from 1 to 5", json_schema_extra={"example": 3}
+        None, description="Rating from 1 to 5", json_schema_extra={"example": 3},
+        ge=1, le=5
     )
 
     model_config = {
@@ -72,12 +75,12 @@ class RatingUpdate(BaseModel):
 
 class RatingRead(RatingBase):
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        ...,
         description="Creation timestamp (UTC).",
         json_schema_extra={"example": "2025-01-15T10:20:30Z"},
     )
-    updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
+    updated_at: Optional[datetime] = Field(
+        default=None,
         description="Last update timestamp (UTC).",
         json_schema_extra={"example": "2025-01-16T12:00:00Z"},
     )
