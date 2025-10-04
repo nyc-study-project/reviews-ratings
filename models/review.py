@@ -12,16 +12,6 @@ class ReviewBase(BaseModel):
         description="Server-generated Review  ID.",
         json_schema_extra={"example": "99999999-9999-4999-8999-999999999999"},
     )
-    spotId: int = Field(
-        ...,
-        description="ID of the study spot",
-        json_schema_extra={"example": 182934631},
-    )
-    userId: int = Field(
-        ...,
-        description="The user ID",
-        json_schema_extra={"example": 182934631},
-    )
     review: str = Field(
         ...,
         description="The review",
@@ -38,8 +28,6 @@ class ReviewBase(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "spotId": 182934631,
-                    "userId": 182934631,
                     "review": "Extremely loud and hard to focus.",
                     "postDate": "2025-01-15T10:20:30Z",
                     
@@ -55,8 +43,6 @@ class ReviewCreate(ReviewBase):
         "json_schema_extra": {
             "examples": [
                 {
-                    "spotId": 182934631,
-                    "userId": 182934631,
                     "review": "Extremely loud and hard to focus.",
                     "postDate": "2025-01-15T10:20:30Z",
                 }
@@ -100,8 +86,6 @@ class ReviewRead(ReviewBase):
             "examples": [
                 {
                     "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "spotId": 182934631,
-                    "userId": 182934631,
                     "review": "Extremely loud and hard to focus.",
                     "created_at": "2025-01-15T10:20:30Z",
                     "updated_at": "2025-01-16T12:00:00Z",

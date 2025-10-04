@@ -12,11 +12,6 @@ class RatingBase(BaseModel):
         description="Server-generated Rating  ID.",
         json_schema_extra={"example": "99999999-9999-4999-8999-999999999999"},
     )
-    spotId: int = Field(
-        ...,
-        description="ID of the study spot",
-        json_schema_extra={"example": 182934631},
-    )
     rating: int = Field(
         ...,
         description="The rating",
@@ -33,8 +28,9 @@ class RatingBase(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "spotId": 182934631,
                     "rating": 2,
+                    "postDate": "2025-01-15T10:20:30Z",
+                    
                 }
             ]
         }
@@ -47,8 +43,9 @@ class RatingCreate(RatingBase):
         "json_schema_extra": {
             "examples": [
                 {
-                    "spotId": 182934631,
+
                     "rating": 2,
+                    "postDate": "2025-01-15T10:20:30Z",
                 }
             ]
         }
@@ -66,7 +63,6 @@ class RatingUpdate(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "spotId": 182934631,
                     "rating": 2,
                 }
             ]
@@ -91,7 +87,6 @@ class RatingRead(RatingBase):
             "examples": [
                 {
                     "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "spotId": 182934631,
                     "rating": 2,
                     "postDate": "2025-01-15T10:20:30Z",
                     "created_at": "2025-01-15T10:20:30Z",
