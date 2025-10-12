@@ -1,0 +1,542 @@
+openapi: 3.0.4
+info:
+  title: reviews and ratings
+  description: description
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      summary: Get Health No Path
+      operationId: get_health_no_path_health_get
+      parameters:
+        - name: echo
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Optional echo string
+            title: Echo
+          description: Optional echo string
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /health/{path_echo}:
+    get:
+      summary: Get Health With Path
+      operationId: get_health_with_path_health__path_echo__get
+      parameters:
+        - name: path_echo
+          in: path
+          required: true
+          schema:
+            type: string
+            description: Required echo in the URL path
+            title: Path Echo
+          description: Required echo in the URL path
+        - name: echo
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Optional echo string
+            title: Echo
+          description: Optional echo string
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /review/{spotId}/user/{userId}:
+    post:
+      summary: Add Review
+      operationId: add_review_review__spotId__user__userId__post
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Spotid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Userid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /review/{reviewId}:
+    patch:
+      summary: Update Review
+      operationId: update_review_review__reviewId__patch
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            title: Reviewid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Review
+      operationId: delete_review_review__reviewId__delete
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            title: Reviewid
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /rating/{spotId}/user/{userId}:
+    post:
+      summary: Add Rating
+      operationId: add_rating_rating__spotId__user__userId__post
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Spotid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Userid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /rating/{ratingId}:
+    patch:
+      summary: Update Rating
+      operationId: update_rating_rating__ratingId__patch
+      parameters:
+        - name: ratingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            title: Ratingid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingRead'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Rating
+      operationId: delete_rating_rating__ratingId__delete
+      parameters:
+        - name: ratingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            title: Ratingid
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ratings/{spotId}:
+    get:
+      summary: Get Ratings
+      operationId: get_ratings_ratings__spotId__get
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Spotid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /reviews/{spotId}:
+    get:
+      summary: Get Reviews
+      operationId: get_reviews_reviews__spotId__get
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Spotid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ratings/{spotId}/average:
+    get:
+      summary: Get Average Rating
+      operationId: get_average_rating_ratings__spotId__average_get
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          schema:
+            type: integer
+            title: Spotid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /:
+    get:
+      summary: Root
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    Health:
+      properties:
+        status:
+          type: integer
+          title: Status
+          description: Numeric status code (e.g., 200 for OK)
+        status_message:
+          type: string
+          title: Status Message
+          description: Human-readable status message
+        timestamp:
+          type: string
+          title: Timestamp
+          description: Timestamp in ISO 8601 format (UTC)
+        ip_address:
+          type: string
+          title: Ip Address
+          description: IP address of the responding service
+        echo:
+          type: string
+          title: Echo
+          description: Optional echo (query param)
+        path_echo:
+          type: string
+          title: Path Echo
+          description: Echo from path param (/health/{path_echo})
+      type: object
+      required:
+        - status
+        - status_message
+        - timestamp
+        - ip_address
+      title: Health
+      example:
+        echo: Hello from query
+        ip_address: 192.168.1.10
+        path_echo: Hello from path
+        status: 200
+        status_message: OK
+        timestamp: '2025-09-02T12:34:56Z'
+    RatingCreate:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Server-generated Rating  ID.
+          example: 99999999-9999-4999-8999-999999999999
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+          title: Rating
+          description: The rating
+          example: 2
+        postDate:
+          type: string
+          format: date-time
+          title: Postdate
+          description: Date/time the rating was posted.
+          example: '2025-01-15T10:20:30Z'
+      type: object
+      required:
+        - rating
+      title: RatingCreate
+      description: >-
+        Creation payload; ID is generated server-side but present in the base
+        model.
+    RatingRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Server-generated Rating  ID.
+          example: 99999999-9999-4999-8999-999999999999
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+          title: Rating
+          description: The rating
+          example: 2
+        postDate:
+          type: string
+          format: date-time
+          title: Postdate
+          description: Date/time the rating was posted.
+          example: '2025-01-15T10:20:30Z'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp (UTC).
+          example: '2025-01-15T10:20:30Z'
+        updated_at:
+          anyOf:
+            - type: string
+              format: date-time
+          title: Updated At
+          description: Last update timestamp (UTC).
+          example: '2025-01-16T12:00:00Z'
+      type: object
+      required:
+        - rating
+        - created_at
+      title: RatingRead
+    RatingUpdate:
+      properties:
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+          title: Rating
+          description: Rating from 1 to 5
+          example: 3
+      type: object
+      title: RatingUpdate
+      description: Partial update; rating ID is taken from the path, not the body.
+    ReviewCreate:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Server-generated Review  ID.
+          example: 99999999-9999-4999-8999-999999999999
+        review:
+          type: string
+          title: Review
+          description: The review
+          example: Extremely loud and hard to focus.
+        postDate:
+          type: string
+          format: date-time
+          title: Postdate
+          description: Date/time the review was posted.
+          example: '2025-01-15T10:20:30Z'
+      type: object
+      required:
+        - review
+      title: ReviewCreate
+      description: >-
+        Creation payload; ID is generated server-side but present in the base
+        model.
+    ReviewRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Server-generated Review  ID.
+          example: 99999999-9999-4999-8999-999999999999
+        review:
+          type: string
+          title: Review
+          description: The review
+          example: Extremely loud and hard to focus.
+        postDate:
+          type: string
+          format: date-time
+          title: Postdate
+          description: Date/time the review was posted.
+          example: '2025-01-15T10:20:30Z'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp (UTC).
+          example: '2025-01-15T10:20:30Z'
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: Last update timestamp (UTC).
+          example: '2025-01-16T12:00:00Z'
+      type: object
+      required:
+        - review
+        - created_at
+      title: ReviewRead
+    ReviewUpdate:
+      properties:
+        review:
+          type: string
+          title: Review
+          description: The text of the review
+          example: Extremely loud and hard to focus.
+      type: object
+      title: ReviewUpdate
+      description: Partial update; review ID is taken from the path, not the body.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
