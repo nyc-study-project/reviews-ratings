@@ -312,7 +312,7 @@ def delete_rating(ratingId: UUID):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/review/{reviewId}", status_code=200, response_model = ReviewResponse)
-def get_rating(reviewId: int):
+def get_rating(reviewId: UUID):
     queries = [("SELECT * FROM reviews WHERE id = %s;", (reviewId,))]
     results = execute_query(queries)
     if len(results) == 0:
@@ -339,7 +339,7 @@ def get_rating(reviewId: int):
     }
 
 @app.get("/rating/{ratingId}", status_code=200, response_model = RatingResponse)
-def get_ratings(ratingId: int):
+def get_ratings(ratingId: UUID):
     queries = [("SELECT * FROM ratings WHERE id = %s;", (ratingId,))]
     results = execute_query(queries)
     if len(results) == 0:

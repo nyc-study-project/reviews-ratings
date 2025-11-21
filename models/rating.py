@@ -101,10 +101,11 @@ class RatingRead(RatingBase):
     }
 
 class RatingAggregation(BaseModel):
-    spotId: str = Field(
+    spotId: int = Field(
         ...,
         description="The spot id",
-        json_schema_extra={"example": "100"},
+        json_schema_extra={"example": 2,},
+        ge=0
     )
     average_rating: float = Field(
         ...,
