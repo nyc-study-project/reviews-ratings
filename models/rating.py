@@ -117,8 +117,7 @@ class RatingAggregation(BaseModel):
         ...,
         description="The rating count",
         json_schema_extra={"example": 2,},
-        ge=0,
-        le=math.inf
+        ge=0
     )
 
     model_config = {
