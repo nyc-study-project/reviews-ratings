@@ -136,7 +136,16 @@ def add_review(spotId: int, userId: int, body: ReviewCreate):
         new_review = execute_query(queries, only_one=True)
         if not new_review:
             raise HTTPException(status_code=500, detail="Failed to create and retrieve the new review.")
-        return new_review
+        return {
+            "data": new_review,
+            "links": [
+                {
+                    "href": "self",
+                    "rel": f"/review/{new_review.id}",
+                    "type" : "GET"
+                }
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -158,7 +167,16 @@ def update_review(reviewId: UUID, body: ReviewUpdate):
         updated_review = execute_query(queries, only_one=True)
         if not updated_review:
             raise HTTPException(status_code=404, detail=f"Review ID {reviewId} not found.")
-        return updated_review
+        return {
+            "data": updated_review, 
+            "links": [
+                {
+                    "href": "self",
+                    "rel": f"/review/{reviewId}",
+                    "type" : "GET"
+                }
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -178,7 +196,16 @@ def add_rating(spotId: int, userId: int, body: RatingCreate):
         new_rating = execute_query(queries, only_one=True)
         if not new_rating:
             raise HTTPException(status_code=500, detail="Failed to create and retrieve the new rating.")
-        return new_rating
+        return {
+            "data": new_rating,
+            "links": [
+                {
+                    "href": "self",
+                    "rel": f"/rating/{new_rating.id}",
+                    "type" : "GET"
+                }
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -200,7 +227,16 @@ def update_rating(ratingId: UUID, body: RatingUpdate):
         updated_rating = execute_query(queries, only_one=True)
         if not updated_rating:
             raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
-        return updated_rating
+        return {
+            "data": updated_rating,
+            "links": [
+                {
+                    "href": "self",
+                    "rel": f"/rating/{ratingId}",
+                    "type" : "GET"
+                }
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -232,21 +268,118 @@ def delete_rating(ratingId: UUID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/review/{reviewId}")
+def get_rating(reviewId: int):
+    queries = [("SELECT * FROM reviews WHERE id = %s;", (reviewId,))]
+    results = execute_query(queries)
+    if len(results) == 0:
+        raise HTTPException(status_code=404, detail=f"Review ID {reviewId} not found.")
+
+    item = queries[0]
+    review_read = ReviewRead(
+        id = item["id"],
+        review = item["review"],
+        postDate=item["postDate"],
+        created_at=item["created_at"],
+        updated_at=item["updated_at"]
+    )
+
+    return {
+        "data": review_read,
+        "links": [
+            {
+                "href": "self",
+                "rel": f"/review/{reviewId}",
+                "type" : "GET"
+            }
+        ]
+    }
+
+@app.get("/rating/{ratingId}")
+def get_ratings(ratingId: int):
+    queries = [("SELECT * FROM ratings WHERE id = %s;", (ratingId,))]
+    results = execute_query(queries)
+    if len(results) == 0:
+        raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
+
+    item = queries[0]
+    rating_read = RatingRead(
+        id = item["id"],
+        rating = item["rating"],
+        postDate=item["postDate"],
+        created_at=item["created_at"],
+        updated_at=item["updated_at"]
+    )
+
+    return {
+        "data": rating_read,
+        "links": [
+            {
+                "href": "self",
+                "rel": f"/rating/{ratingId}",
+                "type" : "GET"
+            }
+        ]
+    }
+
 @app.get("/ratings/{spotId}")
 def get_ratings(spotId: int):
     queries = [("SELECT * FROM ratings WHERE spot_id = %s;", (spotId,))]
     results = execute_query(queries)
-    if not results:
-        return {"ratings": []}
-    return {"ratings": results}
+    items = []
+    links = []
+    for item in results:
+        items.append(
+            RatingRead(
+                id = item["id"],
+                rating = item["rating"],
+                postDate=item["postDate"],
+                created_at=item["created_at"],
+                updated_at=item["updated_at"]
+            )
+        )
+        links.append({
+            "href": "self",
+            "rel": f"/rating/{item["id"]}",
+            "type" : "GET"
+        })
+    response_data = [
+        {
+            "data": item,
+            "links": [link]
+        } for item, link in zip(items, links)
+    ]
+    return response_data
 
 @app.get("/reviews/{spotId}")
 def get_reviews(spotId: int):
     queries = [("SELECT * FROM reviews WHERE spot_id = %s;", (spotId,))]
     results = execute_query(queries)
-    if not results:
-        return {"reviews": []}
-    return {"reviews": results}
+    items = []
+    links = []
+    for item in results:
+        items.append(
+            ReviewRead(
+                id = item["id"],
+                review = item["review"],
+                postDate=item["postDate"],
+                created_at=item["created_at"],
+                updated_at=item["updated_at"]
+            )
+        )
+        links.append({
+            "href": "self",
+            "rel": f"/review/{item["id"]}",
+            "type" : "GET"
+        })
+
+    response_data = [
+        {
+            "data": item,
+            "links": [link]
+        } for item, link in zip(items, links)
+    ]
+    return response_data
 
 @app.get("/ratings/{spotId}/average")
 def get_average_rating(spotId: int):
@@ -255,12 +388,23 @@ def get_average_rating(spotId: int):
         (spotId,)
     )]
     result = execute_query(queries, only_one=True)
-    
+    data = None
     if not result or result["average_rating"] is None:
-        return {"spotId": spotId, "average_rating": 0.0, "rating_count": 0}
+        data = {"spotId": spotId, "average_rating": 0.0, "rating_count": 0}
+    else:
+        avg_rating = round(float(result["average_rating"]), 1)
+        data = {"spotId": spotId, "average_rating": avg_rating, "rating_count": result["rating_count"]}
     
-    avg_rating = round(float(result["average_rating"]), 1)
-    return {"spotId": spotId, "average_rating": avg_rating, "rating_count": result["rating_count"]}
+    return {
+        "data": data,
+        "links": [
+            {
+                "href": "collection",
+                "rel": f"/ratings/{spotId}",
+                "type" : "GET"
+            }
+        ]
+    }
 
 
 
