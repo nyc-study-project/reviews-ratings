@@ -8,12 +8,12 @@ from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
 from fastapi import Query, Path
-from typing import Optional
+from typing import Optional, List
 
 from models.health import Health
 
-from models.rating import RatingCreate, RatingRead, RatingUpdate
-from models.review import ReviewCreate, ReviewRead, ReviewUpdate
+from models.rating import RatingCreate, RatingRead, RatingUpdate, RatingResponse, RatingAggregation, RatingAggregationResponse
+from models.review import ReviewCreate, ReviewRead, ReviewUpdate, ReviewResponse
 
 from starlette.responses import JSONResponse
 from starlette.requests import Request
@@ -129,7 +129,7 @@ def execute_query(queries: list, only_one=False):
             
     return result
 
-@app.post("/review/{spotId}/user/{userId}", status_code=201, response_model=ReviewRead)
+@app.post("/review/{spotId}/user/{userId}", status_code=201, response_model=ReviewResponse)
 def add_review(spotId: int, userId: int, body: ReviewCreate):
     try:
         queries = [
@@ -142,9 +142,18 @@ def add_review(spotId: int, userId: int, body: ReviewCreate):
                 (str(body.id),)
             )
         ]
-        new_review = execute_query(queries, only_one=True)
-        if not new_review:
+        result = execute_query(queries, only_one=True)
+        if not result:
             raise HTTPException(status_code=500, detail="Failed to create and retrieve the new review.")
+        
+        new_review = ReviewRead(
+            id = result["id"],
+            review = result["review"],
+            created_at=result["created_at"],
+            updated_at=result["updated_at"],
+            postDate=result["created_at"]
+        )
+
         return {
             "data": new_review,
             "links": [
@@ -158,7 +167,7 @@ def add_review(spotId: int, userId: int, body: ReviewCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.patch("/review/{reviewId}", response_model=ReviewRead)
+@app.patch("/review/{reviewId}", status_code=200, response_model=ReviewResponse)
 def update_review(reviewId: UUID, body: ReviewUpdate):
     if body.review is None:
         raise HTTPException(status_code=400, detail="Can't update review without review field")
@@ -173,9 +182,18 @@ def update_review(reviewId: UUID, body: ReviewUpdate):
                 (str(reviewId),)
             )
         ]
-        updated_review = execute_query(queries, only_one=True)
-        if not updated_review:
+        result = execute_query(queries, only_one=True)
+        if not result:
             raise HTTPException(status_code=404, detail=f"Review ID {reviewId} not found.")
+
+        updated_review = ReviewRead(
+            id = result["id"],
+            review=result["review"],
+            created_at=result["created_at"],
+            updated_at=result["updated_at"],
+            postDate=result["created_at"]
+        )
+
         return {
             "data": updated_review, 
             "links": [
@@ -189,7 +207,7 @@ def update_review(reviewId: UUID, body: ReviewUpdate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/rating/{spotId}/user/{userId}", status_code=201, response_model=RatingRead)
+@app.post("/rating/{spotId}/user/{userId}", status_code=201, response_model=RatingResponse)
 def add_rating(spotId: int, userId: int, body: RatingCreate):
     try:
         queries = [
@@ -202,9 +220,18 @@ def add_rating(spotId: int, userId: int, body: RatingCreate):
                 (str(body.id),)
             )
         ]
-        new_rating = execute_query(queries, only_one=True)
-        if not new_rating:
+        result = execute_query(queries, only_one=True)
+        if not result:
             raise HTTPException(status_code=500, detail="Failed to create and retrieve the new rating.")
+        
+        new_rating = RatingRead(
+            id=result["id"],
+            rating=result["rating"],
+            postDate=result["created_at"],
+            created_at=result["created_at"],
+            updated_at=result["updated_at"]
+        )
+
         return {
             "data": new_rating,
             "links": [
@@ -218,7 +245,7 @@ def add_rating(spotId: int, userId: int, body: RatingCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.patch("/rating/{ratingId}", response_model=RatingRead)
+@app.patch("/rating/{ratingId}", status_code=200, response_model=RatingResponse)
 def update_rating(ratingId: UUID, body: RatingUpdate):
     if body.rating is None:
         raise HTTPException(status_code=400, detail="Can't update rating without rating field")
@@ -233,9 +260,16 @@ def update_rating(ratingId: UUID, body: RatingUpdate):
                 (str(ratingId),)
             )
         ]
-        updated_rating = execute_query(queries, only_one=True)
-        if not updated_rating:
+        result = execute_query(queries, only_one=True)
+        if not result:
             raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
+        updated_rating = RatingRead(
+            id=result["id"],
+            rating=result["rating"],
+            postDate=result["created_at"],
+            created_at=result["created_at"],
+            updated_at=result["updated_at"]
+        )
         return {
             "data": updated_rating,
             "links": [
@@ -277,14 +311,14 @@ def delete_rating(ratingId: UUID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/review/{reviewId}")
+@app.get("/review/{reviewId}", status_code=200, response_model = ReviewResponse)
 def get_rating(reviewId: int):
     queries = [("SELECT * FROM reviews WHERE id = %s;", (reviewId,))]
     results = execute_query(queries)
     if len(results) == 0:
         raise HTTPException(status_code=404, detail=f"Review ID {reviewId} not found.")
 
-    item = queries[0]
+    item = results[0]
     review_read = ReviewRead(
         id = item["id"],
         review = item["review"],
@@ -304,14 +338,14 @@ def get_rating(reviewId: int):
         ]
     }
 
-@app.get("/rating/{ratingId}")
+@app.get("/rating/{ratingId}", status_code=200, response_model = RatingResponse)
 def get_ratings(ratingId: int):
     queries = [("SELECT * FROM ratings WHERE id = %s;", (ratingId,))]
     results = execute_query(queries)
     if len(results) == 0:
         raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
 
-    item = queries[0]
+    item = results[0]
     rating_read = RatingRead(
         id = item["id"],
         rating = item["rating"],
@@ -331,7 +365,7 @@ def get_ratings(ratingId: int):
         ]
     }
 
-@app.get("/ratings/{spotId}")
+@app.get("/ratings/{spotId}", status_code=200, response_model=List[RatingResponse])
 def get_ratings(spotId: int):
     queries = [("SELECT * FROM ratings WHERE spot_id = %s;", (spotId,))]
     results = execute_query(queries)
@@ -360,7 +394,7 @@ def get_ratings(spotId: int):
     ]
     return response_data
 
-@app.get("/reviews/{spotId}")
+@app.get("/reviews/{spotId}", status_code=200, response_model=List[ReviewResponse])
 def get_reviews(spotId: int):
     queries = [("SELECT * FROM reviews WHERE spot_id = %s;", (spotId,))]
     results = execute_query(queries)
@@ -390,22 +424,31 @@ def get_reviews(spotId: int):
     ]
     return response_data
 
-@app.get("/ratings/{spotId}/average")
+@app.get("/ratings/{spotId}/average", status_code=200, response_model=RatingAggregationResponse)
 def get_average_rating(spotId: int):
     queries = [(
         "SELECT AVG(rating) AS average_rating, COUNT(rating) as rating_count FROM ratings WHERE spot_id = %s;", 
         (spotId,)
     )]
     result = execute_query(queries, only_one=True)
-    data = None
+    response = None
+
     if not result or result["average_rating"] is None:
-        data = {"spotId": spotId, "average_rating": 0.0, "rating_count": 0}
+        response = RatingAggregation(
+            spotId=spotId,
+            average_rating=0.0,
+            rating_count=0
+        )
     else:
         avg_rating = round(float(result["average_rating"]), 1)
-        data = {"spotId": spotId, "average_rating": avg_rating, "rating_count": result["rating_count"]}
+        response = RatingAggregation (
+            spotId=spotId,
+            average_rating=avg_rating,
+            rating_count=result["rating_count"]
+        )
     
     return {
-        "data": data,
+        "data": response,
         "links": [
             {
                 "href": "collection",

@@ -98,3 +98,44 @@ class RatingRead(RatingBase):
             ]
         }
     }
+
+class RatingAggregation(BaseModel):
+    spotId: str = Field(
+        ...,
+        description="The spot id",
+        json_schema_extra={"example": "100"},
+    )
+    average_rating: float = Field(
+        ...,
+        description="The average rating",
+        json_schema_extra={"example": 2,},
+        ge=0,
+        le=float("inf")
+    )
+    rating_count: int = Field(
+        ...,
+        description="The rating count",
+        json_schema_extra={"example": 2,},
+        ge=0,
+        le=int("inf")
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "spotId": "100",
+                    "average_rating": 4.0,
+                    "rating_count": 2
+                }
+            ]
+        }
+    }
+
+class RatingResponse(BaseModel):
+    data: RatingRead
+    links: list
+
+class RatingAggregationResponse(BaseModel):
+    data: RatingAggregation
+    links: list

@@ -94,3 +94,7 @@ class ReviewRead(ReviewBase):
             ]
         }
     }
+
+class ReviewResponse(BaseModel):
+    data: ReviewRead
+    links: list
