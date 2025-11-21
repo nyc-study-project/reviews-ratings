@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
+import math
 
 
 class RatingBase(BaseModel):
@@ -117,7 +118,7 @@ class RatingAggregation(BaseModel):
         description="The rating count",
         json_schema_extra={"example": 2,},
         ge=0,
-        le=float("inf")
+        le=math.inf
     )
 
     model_config = {
