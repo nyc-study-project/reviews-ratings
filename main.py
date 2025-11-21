@@ -279,7 +279,6 @@ def get_rating(reviewId: int):
     review_read = ReviewRead(
         id = item["id"],
         review = item["review"],
-        postDate=item["postDate"],
         created_at=item["created_at"],
         updated_at=item["updated_at"]
     )
@@ -306,7 +305,6 @@ def get_ratings(ratingId: int):
     rating_read = RatingRead(
         id = item["id"],
         rating = item["rating"],
-        postDate=item["postDate"],
         created_at=item["created_at"],
         updated_at=item["updated_at"]
     )
@@ -333,7 +331,6 @@ def get_ratings(spotId: int):
             RatingRead(
                 id = item["id"],
                 rating = item["rating"],
-                postDate=item["postDate"],
                 created_at=item["created_at"],
                 updated_at=item["updated_at"]
             )
@@ -362,7 +359,6 @@ def get_reviews(spotId: int):
             ReviewRead(
                 id = item["id"],
                 review = item["review"],
-                postDate=item["postDate"],
                 created_at=item["created_at"],
                 updated_at=item["updated_at"]
             )
