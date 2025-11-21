@@ -280,7 +280,8 @@ def get_rating(reviewId: int):
         id = item["id"],
         review = item["review"],
         created_at=item["created_at"],
-        updated_at=item["updated_at"]
+        updated_at=item["updated_at"],
+        postDate = item["created_at"]
     )
 
     return {
@@ -306,7 +307,8 @@ def get_ratings(ratingId: int):
         id = item["id"],
         rating = item["rating"],
         created_at=item["created_at"],
-        updated_at=item["updated_at"]
+        updated_at=item["updated_at"],
+        postDate = item["created_at"]
     )
 
     return {
@@ -332,7 +334,8 @@ def get_ratings(spotId: int):
                 id = item["id"],
                 rating = item["rating"],
                 created_at=item["created_at"],
-                updated_at=item["updated_at"]
+                updated_at=item["updated_at"],
+                postDate = item["created_at"]
             )
         )
         links.append({
@@ -360,7 +363,8 @@ def get_reviews(spotId: int):
                 id = item["id"],
                 review = item["review"],
                 created_at=item["created_at"],
-                updated_at=item["updated_at"]
+                updated_at=item["updated_at"],
+                postDate=item["created_at"]
             )
         )
         links.append({
