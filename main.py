@@ -340,7 +340,7 @@ def get_ratings(spotId: int):
         )
         links.append({
             "href": "self",
-            "rel": f"/rating/{item["id"]}",
+            "rel": f"/rating/{item['id']}",
             "type" : "GET"
         })
     response_data = [
@@ -369,7 +369,7 @@ def get_reviews(spotId: int):
         )
         links.append({
             "href": "self",
-            "rel": f"/review/{item["id"]}",
+            "rel": f"/review/{item['id']}",
             "type" : "GET"
         })
 
