@@ -24,17 +24,17 @@ def get_connection():
         return mysql.connector.connect(
             host="127.0.0.1",
             user="root",
-            password="",
-            database="mydb",
+            password=os.environ.get("DB_PASSWORD", ""),
+            database=os.environ.get("DB_NAME", "mydb"),
             port=3306
         )
     else:
         return mysql.connector.connect(
-            host="34.138.240.11",
-            user="avi",
-            password="columbia25",
-            database="mydb",
-            port=3306
+            host=os.environ["DB_HOST"],
+            user=os.environ["DB_USER"],
+            password=os.environ["DB_PASSWORD"],
+            database=os.environ["DB_NAME"],
+            port=int(os.environ.get("DB_PORT", 3306))
         )
 
 
@@ -277,4 +277,4 @@ def root():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
