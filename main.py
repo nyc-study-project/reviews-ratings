@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import socket
 from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 
 from fastapi import FastAPI, HTTPException
@@ -169,6 +169,7 @@ def add_review(spotId: int, userId: int, body: ReviewCreate):
 
 @app.patch("/review/{reviewId}", status_code=200, response_model=ReviewResponse)
 def update_review(reviewId: UUID, body: ReviewUpdate):
+    reviewId = str(reviewId)
     if body.review is None:
         raise HTTPException(status_code=400, detail="Can't update review without review field")
     try:
@@ -247,6 +248,7 @@ def add_rating(spotId: int, userId: int, body: RatingCreate):
 
 @app.patch("/rating/{ratingId}", status_code=200, response_model=RatingResponse)
 def update_rating(ratingId: UUID, body: RatingUpdate):
+    ratingId = str(ratingId)
     if body.rating is None:
         raise HTTPException(status_code=400, detail="Can't update rating without rating field")
     try:
@@ -285,6 +287,7 @@ def update_rating(ratingId: UUID, body: RatingUpdate):
 
 @app.delete("/review/{reviewId}", status_code=204)
 def delete_review(reviewId: UUID):
+    reviewId = str(reviewId)
     try:
         queries = [(
             "DELETE FROM reviews WHERE id = %s",
@@ -299,6 +302,7 @@ def delete_review(reviewId: UUID):
 
 @app.delete("/rating/{ratingId}", status_code=204)
 def delete_rating(ratingId: UUID):
+    ratingId = str(ratingId)
     try:
         queries = [(
             "DELETE FROM ratings WHERE id = %s",
@@ -313,6 +317,7 @@ def delete_rating(ratingId: UUID):
 
 @app.get("/review/{reviewId}", status_code=200, response_model = ReviewResponse)
 def get_rating(reviewId: UUID):
+    reviewId = str(reviewId)
     queries = [("SELECT * FROM reviews WHERE id = %s;", (reviewId,))]
     results = execute_query(queries)
     if len(results) == 0:
@@ -340,6 +345,7 @@ def get_rating(reviewId: UUID):
 
 @app.get("/rating/{ratingId}", status_code=200, response_model = RatingResponse)
 def get_ratings(ratingId: UUID):
+    ratingId = str(ratingId)
     queries = [("SELECT * FROM ratings WHERE id = %s;", (ratingId,))]
     results = execute_query(queries)
     if len(results) == 0:
