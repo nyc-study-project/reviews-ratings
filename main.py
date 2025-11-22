@@ -130,7 +130,7 @@ def execute_query(queries: list, only_one=False):
     return result
 
 @app.post("/review/{spotId}/user/{userId}", status_code=201, response_model=ReviewResponse)
-def add_review(spotId: int, userId: int, body: ReviewCreate):
+def add_review(spotId: str, userId: str, body: ReviewCreate):
     try:
         queries = [
             (
@@ -209,7 +209,7 @@ def update_review(reviewId: UUID, body: ReviewUpdate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/rating/{spotId}/user/{userId}", status_code=201, response_model=RatingResponse)
-def add_rating(spotId: int, userId: int, body: RatingCreate):
+def add_rating(spotId: str, userId: str, body: RatingCreate):
     try:
         queries = [
             (
@@ -372,7 +372,7 @@ def get_ratings(ratingId: UUID):
     }
 
 @app.get("/ratings/{spotId}", status_code=200, response_model=List[RatingResponse])
-def get_ratings(spotId: int):
+def get_ratings(spotId: str):
     queries = [("SELECT * FROM ratings WHERE spot_id = %s;", (spotId,))]
     results = execute_query(queries)
     items = []
@@ -401,7 +401,7 @@ def get_ratings(spotId: int):
     return response_data
 
 @app.get("/reviews/{spotId}", status_code=200, response_model=List[ReviewResponse])
-def get_reviews(spotId: int):
+def get_reviews(spotId: str):
     queries = [("SELECT * FROM reviews WHERE spot_id = %s;", (spotId,))]
     results = execute_query(queries)
     items = []
@@ -431,7 +431,7 @@ def get_reviews(spotId: int):
     return response_data
 
 @app.get("/ratings/{spotId}/average", status_code=200, response_model=RatingAggregationResponse)
-def get_average_rating(spotId: int):
+def get_average_rating(spotId: str):
     queries = [(
         "SELECT AVG(rating) AS average_rating, COUNT(rating) as rating_count FROM ratings WHERE spot_id = %s;", 
         (spotId,)
