@@ -148,6 +148,7 @@ def add_review(spotId: str, userId: str, body: ReviewCreate):
         
         new_review = ReviewRead(
             id = result["id"],
+            user_id=userId,
             review = result["review"],
             created_at=result["created_at"],
             updated_at=result["updated_at"],
@@ -189,6 +190,7 @@ def update_review(reviewId: UUID, body: ReviewUpdate):
 
         updated_review = ReviewRead(
             id = result["id"],
+            user_id=result["user_id"],
             review=result["review"],
             created_at=result["created_at"],
             updated_at=result["updated_at"],
@@ -227,6 +229,8 @@ def add_rating(spotId: str, userId: str, body: RatingCreate):
         
         new_rating = RatingRead(
             id=result["id"],
+            user_id=userId,          
+            spot_id=spotId,
             rating=result["rating"],
             postDate=result["created_at"],
             created_at=result["created_at"],
@@ -267,6 +271,8 @@ def update_rating(ratingId: UUID, body: RatingUpdate):
             raise HTTPException(status_code=404, detail=f"Rating ID {ratingId} not found.")
         updated_rating = RatingRead(
             id=result["id"],
+            user_id=result["user_id"],
+            spot_id=result["spot_id"],
             rating=result["rating"],
             postDate=result["created_at"],
             created_at=result["created_at"],
