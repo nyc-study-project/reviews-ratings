@@ -30,11 +30,5 @@ This microservice manages the reviews and ratings for the study spots.
 All models are made. All Endpoints are locally created. 
 <img width="1215" height="595" alt="Screenshot 2025-10-16 at 11 39 49 PM" src="https://github.com/user-attachments/assets/fd57421f-e91d-4925-8f99-639638ab587e" />
 
-# Sprint 2 - IN PROGRESS
+# Sprint 2
 Connected main.py to Cloud Run. Cloud Run is connected to Cloud SQL instance with spot-management database. 
-
-Things todo: 
-- import test data into database
-- implement FastAPI endpoints that connect to database
-- Finalize Schema
-- etc.
