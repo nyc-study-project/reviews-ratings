@@ -381,6 +381,7 @@ def get_ratings(spotId: str):
         items.append(
             RatingRead(
                 id = item["id"],
+                user_id = item["user_id"],
                 rating = item["rating"],
                 created_at=item["created_at"],
                 updated_at=item["updated_at"],
@@ -410,6 +411,7 @@ def get_reviews(spotId: str):
         items.append(
             ReviewRead(
                 id = item["id"],
+                user_id = item["user_id"],
                 review = item["review"],
                 created_at=item["created_at"],
                 updated_at=item["updated_at"],

@@ -70,6 +70,7 @@ class ReviewUpdate(BaseModel):
 
 
 class ReviewRead(ReviewBase):
+    user_id: str = Field(..., description="The user who wrote the review")
     created_at: datetime = Field(
         ...,
         description="Creation timestamp (UTC).",

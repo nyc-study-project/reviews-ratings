@@ -75,6 +75,7 @@ class RatingUpdate(BaseModel):
 
 
 class RatingRead(RatingBase):
+    user_id: str = Field(..., description="The user who rated")
     created_at: datetime = Field(
         ...,
         description="Creation timestamp (UTC).",
